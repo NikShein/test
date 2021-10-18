@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=<device-width>, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <style>
+    </style>
+
+    <input id="input" placeholder="Введите текст" value=""/>
+    <button id="btn">Нажмите</button>
+    <script>
+
+        let topElement;
+        let leftElement;
+        const input = document.querySelector("#input");
+        const btn = document.querySelector("#btn");
+        const body = document.querySelector("body");
+        let domElements = [];
+        let letter;
+
+        btn.addEventListener('click', addDragDropString);
+
+        function editInputValue (value) {
+            let letterElements = value.split('');
+            input.value = '';
+            return letterElements;
+        }
+
+        function createSpanWithLetter (array) {
+            array.map((elem, index) => {
+                letter = document.createElement('span');
+                letter.id = index;
+                letter.innerHTML = elem;
+                domElements.push(letter);
+                body.appendChild(letter);
+                letter.addEventListener('click', addDragAndDropProperties);
+            })
+    }
+
+        function addDragDropString () {
+            createSpanWithLetter(editInputValue(input.value));
+        
+        }
+
+        function addDragAndDropProperties () {
+            topElement = this.getBoundingClientRect().top;
+            leftElement = this.getBoundingClientRect().left;
+            this.style.zIndex = '9999';
+            this.removeEventListener('click', addDragAndDropProperties);
+
+            let self = this;
+            let shiftX = event.clientX - self.getBoundingClientRect().left;
+            let shiftY = event.clientY - self.getBoundingClientRect().top;
+            
+
+            this.style.position = 'absolute';
+
+            moveAt(event.pageX, event.pageY);
+
+            function moveAt(pageX, pageY) {
+                self.style.left = pageX - shiftX + 'px';
+                self.style.top = pageY -  shiftY + 'px';
+            }
+
+            function onMouseMove(self) {
+                moveAt(event.pageX, event.pageY);
+                
+            }
+
+            document.addEventListener('mousemove', onMouseMove);
+
+            this.addEventListener('click', middleHandler);
+
+            function middleHandler () {
+                
+                for (let elem of domElements) {
+                    if(overlayCheck(elem, self)){
+                        if(elem != self){
+                            elem.style.top = topElement + 'px';
+                            elem.style.left = leftElement + 'px';
+                        }
+                        
+                    } 
+                }
+                document.removeEventListener('mousemove', onMouseMove);
+                self.removeEventListener('click', middleHandler);
+                self.addEventListener('click', addDragAndDropProperties);
+                self.style.zIndex = '0';
+                
+                
+            }
+
+            
+
+            this.ondragstart = function() {
+                return false;
+            };
+        };
+        function overlayCheck(elem1, elem2) {
+            elem1.offsetBottom = elem1.offsetTop + elem1.offsetHeight;
+            elem1.offsetRight = elem1.offsetLeft + elem1.offsetWidth;
+            elem2.offsetBottom = elem2.offsetTop + elem2.offsetHeight;
+            elem2.offsetRight = elem2.offsetLeft + elem2.offsetWidth;
+            
+            return !((elem1.offsetBottom < elem2.offsetTop) ||
+                    (elem1.offsetTop > elem2.offsetBottom) ||
+                    (elem1.offsetRight < elem2.offsetLeft) ||
+                    (elem1.offsetLeft > elem2.offsetRight))
+        };
+    </script>
+</body>
+</html>
